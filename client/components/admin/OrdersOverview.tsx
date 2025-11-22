@@ -133,7 +133,7 @@ export default function OrdersOverview({ orders, onUpdate }: OrdersOverviewProps
                           {item.product.title}
                         </span>
                         <span className="text-muted-foreground text-xs ml-2">
-                          ×{item.quantity}
+                          ×{item.qty}
                         </span>
                       </div>
                     ))}
