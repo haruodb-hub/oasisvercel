@@ -1,9 +1,9 @@
-import React from "react";
+import { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon: ReactNode;
   bgColor: string;
   iconColor: string;
   trend?: {
