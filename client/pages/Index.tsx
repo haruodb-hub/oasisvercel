@@ -41,7 +41,7 @@ export default function Index() {
               )}
               alt="Hero"
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
               decoding="async"
               sizes="100vw"
               className="h-[420px] w-full object-cover md:h-full"

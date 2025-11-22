@@ -42,7 +42,7 @@ export default function Product() {
           srcSet={buildSrcSet(product.image)}
           alt={product.title}
           loading="eager"
-          fetchpriority="high"
+          fetchPriority="high"
           decoding="async"
           sizes="(min-width:768px) 50vw, 100vw"
           className="aspect-[4/5] w-full rounded-xl border object-cover"

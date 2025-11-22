@@ -455,7 +455,7 @@ function Field({
 function InteractionComposer({
   onAdd,
 }: {
-  onAdd: (type: InteractionType, note?: string) => void;
+  onAdd: (type: "note" | "call" | "email" | "meeting", note?: string) => void;
 }) {
   type InteractionType = "note" | "call" | "email" | "meeting";
   const [type, setType] = useState<InteractionType>("note");

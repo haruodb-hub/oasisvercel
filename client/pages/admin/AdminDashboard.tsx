@@ -24,6 +24,17 @@ export default function AdminDashboard() {
   >("all");
   const [activeTab, setActiveTab] = useState<string>("overview");
 
+  // Listen for storage changes (real-time updates when orders change)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "orders") {
+        setOrders(getOrders());
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const stats = useMemo(() => {
     const total = orders.reduce((s, o) => s + o.totals.total, 0);
     const pendingVerify = orders.filter((o) => !o.paymentVerified).length;
@@ -60,8 +71,6 @@ export default function AdminDashboard() {
     setOrders(next);
     saveOrders(next);
   };
-
-  console.log("AdminDashboard rendering", { activeTab, role: auth.role });
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-white to-primary/5">
