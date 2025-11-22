@@ -1,17 +1,19 @@
 import { useAuth } from "@/store/auth";
 import { getOrders, saveOrders, type Order } from "@/lib/orders";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { formatCurrency } from "@/lib/money";
 import { Navigate } from "react-router-dom";
-import ProductManager from "@/components/admin/ProductManager";
-import PostManager from "@/components/admin/PostManager";
-import ContentManager from "@/components/admin/ContentManager";
-import CustomerManager from "@/components/admin/CustomerManager";
-import InventoryManager from "@/components/admin/InventoryManager";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import DashboardHeader from "@/components/admin/DashboardHeader";
 import StatCard from "@/components/admin/StatCard";
-import OrdersOverview from "@/components/admin/OrdersOverview";
+
+// Lazy load heavy components
+const ProductManager = lazy(() => import("@/components/admin/ProductManager"));
+const PostManager = lazy(() => import("@/components/admin/PostManager"));
+const ContentManager = lazy(() => import("@/components/admin/ContentManager"));
+const CustomerManager = lazy(() => import("@/components/admin/CustomerManager"));
+const InventoryManager = lazy(() => import("@/components/admin/InventoryManager"));
+const OrdersOverview = lazy(() => import("@/components/admin/OrdersOverview"));
 
 export default function AdminDashboard() {
   const auth = useAuth();
@@ -201,42 +203,52 @@ export default function AdminDashboard() {
 
           {/* Customers Tab */}
           {activeTab === "customers" && (
-            <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
-              <CustomerManager />
-            </div>
+            <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading Customers...</div>}>
+              <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
+                <CustomerManager />
+              </div>
+            </Suspense>
           )}
 
           {/* Products Tab */}
           {activeTab === "products" && (
-            <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
-              <ProductManager />
-            </div>
+            <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading Products...</div>}>
+              <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
+                <ProductManager />
+              </div>
+            </Suspense>
           )}
 
           {/* Orders Tab */}
           {activeTab === "orders" && (
-            <div className="space-y-6">
-              <OrdersOverview orders={filteredOrders} onUpdate={update} />
-            </div>
+            <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading Orders...</div>}>
+              <div className="space-y-6">
+                <OrdersOverview orders={filteredOrders} onUpdate={update} />
+              </div>
+            </Suspense>
           )}
 
           {/* Inventory Tab */}
           {activeTab === "inventory" && (
-            <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
-              <InventoryManager />
-            </div>
+            <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading Inventory...</div>}>
+              <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
+                <InventoryManager />
+              </div>
+            </Suspense>
           )}
 
           {/* Content Tab */}
           {activeTab === "content" && (
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
-                <PostManager />
+            <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading Content...</div>}>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
+                  <PostManager />
+                </div>
+                <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
+                  <ContentManager />
+                </div>
               </div>
-              <div className="rounded-2xl border border-primary/10 bg-white overflow-hidden shadow-sm">
-                <ContentManager />
-              </div>
-            </div>
+            </Suspense>
           )}
         </div>
       </main>
