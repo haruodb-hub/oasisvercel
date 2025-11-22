@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { formatCurrency } from "@/lib/money";
 import type { Order } from "@/lib/orders";
 import { Button } from "@/components/ui/button";
+import { Eye, X } from "lucide-react";
 
 interface OrdersOverviewProps {
   orders: Order[];
@@ -20,6 +21,7 @@ export default function OrdersOverview({ orders, onUpdate }: OrdersOverviewProps
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | "placed" | "processing" | "shipped" | "delivered" | "cancelled">("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const pageSize = 5;
 
   const filteredOrders = useMemo(() => {
@@ -179,13 +181,11 @@ export default function OrdersOverview({ orders, onUpdate }: OrdersOverviewProps
 
                   {/* View Button */}
                   <button
-                    className="h-9 rounded-lg border border-primary/20 px-3 text-xs font-medium transition-all hover:bg-primary/10 hover:border-primary/40 text-primary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert(JSON.stringify(o, null, 2));
-                    }}
+                    className="h-9 rounded-lg border border-primary/20 px-3 text-xs font-medium transition-all hover:bg-primary/10 hover:border-primary/40 text-primary flex items-center gap-1"
+                    onClick={() => setSelectedOrder(o)}
                   >
-                    👁️ View
+                    <Eye size={14} />
+                    View
                   </button>
                 </div>
               </div>
@@ -237,6 +237,141 @@ export default function OrdersOverview({ orders, onUpdate }: OrdersOverviewProps
             >
               Next →
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 flex items-center justify-between border-b border-primary/10 bg-gradient-to-r from-primary/5 to-primary/10 p-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+                <p className="text-sm text-gray-600 mt-1">Order ID: {selectedOrder.id}</p>
+              </div>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="rounded-lg p-2 hover:bg-primary/10 transition-colors"
+              >
+                <X size={24} className="text-gray-600" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Status & Verification */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 p-4">
+                  <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Status</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-2xl">{statusConfig[selectedOrder.status].icon}</span>
+                    <span className="text-lg font-bold text-blue-900 capitalize">{selectedOrder.status}</span>
+                  </div>
+                </div>
+                <div className={`rounded-xl p-4 ${selectedOrder.paymentVerified ? "bg-gradient-to-br from-green-50 to-green-100" : "bg-gradient-to-br from-amber-50 to-amber-100"}`}>
+                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: selectedOrder.paymentVerified ? "#0b5345" : "#92400e" }}>
+                    {selectedOrder.paymentVerified ? "✓ Verified" : "⏳ Pending"}
+                  </p>
+                  <p className="text-lg font-bold mt-2" style={{ color: selectedOrder.paymentVerified ? "#0b5345" : "#92400e" }}>
+                    Payment {selectedOrder.paymentVerified ? "Verified" : "Verification"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Order Date */}
+              <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Order Date</p>
+                <p className="mt-2 text-lg font-bold text-gray-900">
+                  {new Date(selectedOrder.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}
+                </p>
+              </div>
+
+              {/* Order Items */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Order Items</h3>
+                <div className="space-y-3">
+                  {selectedOrder.items.map((item, idx) => (
+                    <div key={idx} className="flex items-start justify-between rounded-lg border border-primary/10 bg-gray-50 p-4">
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{item.product.title}</p>
+                        {item.size && <p className="text-sm text-gray-600 mt-1">Size: <span className="font-medium">{item.size}</span></p>}
+                        <p className="text-sm text-gray-600">Quantity: <span className="font-medium">{item.qty}</span></p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-primary">{formatCurrency((selectedOrder.totals.subtotal / selectedOrder.items.length) * item.qty)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cost Breakdown */}
+              <div className="rounded-xl border border-primary/10 bg-gray-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">Subtotal:</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(selectedOrder.totals.subtotal)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">Shipping:</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(selectedOrder.totals.shipping)}</span>
+                </div>
+                <div className="border-t border-primary/20 pt-3 flex justify-between items-center">
+                  <span className="font-bold text-gray-900">Total:</span>
+                  <span className="text-2xl font-bold text-primary">{formatCurrency(selectedOrder.totals.total)}</span>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Details</h3>
+                <div className="rounded-xl border border-primary/10 bg-primary/5 p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Method:</span>
+                    <span className="font-semibold text-gray-900 capitalize">{selectedOrder.payment.method}</span>
+                  </div>
+                  {selectedOrder.payment.mobile && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Mobile:</span>
+                      <span className="font-semibold text-gray-900">{selectedOrder.payment.mobile}</span>
+                    </div>
+                  )}
+                  {selectedOrder.payment.transactionId && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Transaction ID:</span>
+                      <span className="font-semibold text-gray-900 text-right">{selectedOrder.payment.transactionId}</span>
+                    </div>
+                  )}
+                  {selectedOrder.payment.screenshotDataUrl && (
+                    <div className="pt-3 border-t border-primary/20">
+                      <p className="text-gray-700 mb-2">Payment Screenshot:</p>
+                      <img 
+                        src={selectedOrder.payment.screenshotDataUrl} 
+                        alt="Payment receipt" 
+                        className="w-full rounded-lg border border-primary/10 max-h-48 object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="pt-4">
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="w-full rounded-lg bg-gradient-to-r from-primary to-primary/80 px-6 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-primary/30"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
