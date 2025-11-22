@@ -45,9 +45,15 @@ function parseHtmlForProducts(html: string, baseUrl: string) {
       // Validate image URL
       if (!imageUrl || !(/\.(jpg|png|jpeg|webp|gif)/i.test(imageUrl))) continue;
       
-      const fullImageUrl = imageUrl.startsWith("http") 
-        ? imageUrl 
-        : new URL(imageUrl, baseUrl).href;
+      let fullImageUrl = imageUrl;
+      try {
+        fullImageUrl = imageUrl.startsWith("http") 
+          ? imageUrl 
+          : new URL(imageUrl, baseUrl).href;
+      } catch (e) {
+        // If URL parsing fails, skip this image
+        continue;
+      }
 
       // Extract title - try multiple selectors
       let title = "";
@@ -148,7 +154,13 @@ function parseHtmlForProducts(html: string, baseUrl: string) {
       const [, imageUrl, altText] = allImages[i];
       if (!imageUrl || !(/\.(jpg|png|jpeg|webp)/i.test(imageUrl))) continue;
       
-      const fullImageUrl = imageUrl.startsWith("http") ? imageUrl : new URL(imageUrl, baseUrl).href;
+      let fullImageUrl = imageUrl;
+      try {
+        fullImageUrl = imageUrl.startsWith("http") ? imageUrl : new URL(imageUrl, baseUrl).href;
+      } catch (e) {
+        // If URL parsing fails, use the imageUrl as-is
+        fullImageUrl = imageUrl;
+      }
       const title = altText.trim().substring(0, 120);
       
       if (title.length < 3) continue;
@@ -180,65 +192,87 @@ export const handleImportProducts: RequestHandler = async (req, res) => {
       return res.status(400).json({ error: "Invalid URL provided" });
     }
 
-    // Fetch the webpage
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-    });
-
-    if (!response.ok) {
-      return res.status(400).json({ error: "Failed to fetch website" });
+    // Validate URL format
+    let validUrl: URL;
+    try {
+      validUrl = new URL(url);
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid URL format. Please provide a valid website URL." });
     }
 
-    const html = await response.text();
-    const products = parseHtmlForProducts(html, url);
+    // Fetch the webpage with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    if (!products || products.length === 0) {
-      return res.status(400).json({
-        error: "No products found. Please try a different URL.",
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        return res.status(400).json({ error: "Failed to fetch website. Please check the URL." });
+      }
+
+      const html = await response.text();
+      const products = parseHtmlForProducts(html, url);
+
+      if (!products || products.length === 0) {
+        return res.status(400).json({
+          error: "No products found. Please try a different URL.",
+        });
+      }
+
+      // Return scraped products - client will handle saving
+      const productsToReturn = products.slice(0, 15).map((product) => {
+        const id = slugifyId(product.title);
+
+        // Determine category based on keywords
+        let category = "Abayas";
+        const titleLower = product.title.toLowerCase();
+
+        if (titleLower.includes("kaftan")) category = "Kaftans";
+        else if (titleLower.includes("dress") || titleLower.includes("gown") || titleLower.includes("evening"))
+          category = "Modest Dresses";
+        else if (titleLower.includes("prayer") || titleLower.includes("hijab") || titleLower.includes("scarf"))
+          category = "Prayer Sets";
+
+        return {
+          id,
+          title: product.title,
+          price: product.price,
+          image: product.image,
+          description: product.description,
+          category,
+          isNew: false,
+          isBestSeller: false,
+          onSale: false,
+          badge: "",
+          colors: [],
+          sizes: [],
+          tags: ["imported"],
+          hidden: false,
+          images: [],
+        };
+      });
+
+      res.json({
+        success: true,
+        count: productsToReturn.length,
+        products: productsToReturn,
+      });
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === "AbortError") {
+        return res.status(408).json({ error: "Request timeout. The website took too long to respond." });
+      }
+      throw fetchError;
     }
-
-    // Return scraped products - client will handle saving
-    const productsToReturn = products.slice(0, 15).map((product) => {
-      const id = slugifyId(product.title);
-
-      // Determine category based on keywords
-      let category = "Abayas";
-      const titleLower = product.title.toLowerCase();
-
-      if (titleLower.includes("kaftan")) category = "Kaftans";
-      else if (titleLower.includes("dress") || titleLower.includes("gown") || titleLower.includes("evening"))
-        category = "Modest Dresses";
-      else if (titleLower.includes("prayer") || titleLower.includes("hijab") || titleLower.includes("scarf"))
-        category = "Prayer Sets";
-
-      return {
-        id,
-        title: product.title,
-        price: product.price,
-        image: product.image,
-        description: product.description,
-        category,
-        isNew: false,
-        isBestSeller: false,
-        onSale: false,
-        badge: "",
-        colors: [],
-        sizes: [],
-        tags: ["imported"],
-        hidden: false,
-        images: [],
-      };
-    });
-
-    res.json({
-      success: true,
-      count: productsToReturn.length,
-      products: productsToReturn,
-    });
   } catch (error) {
     console.error("Import error:", error);
     res.status(500).json({
