@@ -1,6 +1,6 @@
 import { useAuth } from "@/store/auth";
 import { getOrders, saveOrders, type Order } from "@/lib/orders";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/money";
 import { Navigate } from "react-router-dom";
 import ProductManager from "@/components/admin/ProductManager";
@@ -42,10 +42,12 @@ export default function AdminDashboard() {
     });
   }, [orders, orderQuery, orderStatus]);
 
-  // Set admin role for demo/development
-  if (auth.role !== "admin") {
-    auth.signIn("admin", { name: "Admin User", email: "admin@oasis.local" });
-  }
+  // Set admin role for demo/development (only once)
+  useEffect(() => {
+    if (auth.role !== "admin") {
+      auth.signIn("admin", { name: "Admin User", email: "admin@oasis.local" });
+    }
+  }, []);
 
   // Allow access for demo
   // if (auth.role !== "admin") return <Navigate to="/login" replace />;
