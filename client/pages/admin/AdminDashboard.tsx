@@ -238,3 +238,4 @@ export default function AdminDashboard() {
       </main>
     </div>
   );
+}
