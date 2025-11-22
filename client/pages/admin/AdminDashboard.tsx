@@ -8,7 +8,7 @@ import DashboardHeader from "@/components/admin/DashboardHeader";
 import StatCard from "@/components/admin/StatCard";
 
 // Lazy load heavy components
-const ProductManager = lazy(() => import("@/components/admin/ProductManager"));
+const ProductManager = lazy(() => import("@/components/admin/ProductManagerSimple"));
 const PostManager = lazy(() => import("@/components/admin/PostManager"));
 const ContentManager = lazy(() => import("@/components/admin/ContentManager"));
 const CustomerManager = lazy(() => import("@/components/admin/CustomerManager"));
