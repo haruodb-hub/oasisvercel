@@ -12,6 +12,8 @@ import SidebarNav from "@/components/admin/SidebarNav";
 import AdminSidebarLayout from "@/components/admin/AdminSidebarLayout";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import DashboardHeader from "@/components/admin/DashboardHeader";
+import StatCard from "@/components/admin/StatCard";
+import OrdersOverview from "@/components/admin/OrdersOverview";
 
 export default function AdminDashboard() {
   const { role } = useAuth();
@@ -55,221 +57,142 @@ export default function AdminDashboard() {
         subtitle="Manage customers, products, orders, inventory, posts and site content."
       />
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border bg-white p-5 md:p-6 transition-all hover:shadow-md hover:border-primary/20">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-muted-foreground mb-2">
-                Total Revenue
-              </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-foreground">
-                {formatCurrency(stats.total)}
-              </h3>
-            </div>
-            <div className="rounded-lg bg-primary/10 p-3">
-              <svg
-                className="w-6 h-6 text-primary"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          title="💰 Total Revenue"
+          value={formatCurrency(stats.total)}
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          }
+          bgColor="bg-gradient-to-br from-primary/20 to-primary/10"
+          iconColor="text-primary"
+          trend={{
+            value: 12,
+            isPositive: true,
+          }}
+        />
 
-        <div className="rounded-xl border bg-white p-5 md:p-6 transition-all hover:shadow-md hover:border-primary/20">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-muted-foreground mb-2">
-                Total Orders
-              </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-foreground">
-                {stats.placed}
-              </h3>
-            </div>
-            <div className="rounded-lg bg-blue-100 p-3">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="📦 Total Orders"
+          value={stats.placed}
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+          }
+          bgColor="bg-gradient-to-br from-blue-100 to-blue-50"
+          iconColor="text-blue-600"
+        />
 
-        <div className="rounded-xl border bg-white p-5 md:p-6 transition-all hover:shadow-md hover:border-primary/20">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-muted-foreground mb-2">
-                Pending Verification
-              </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-orange-600">
-                {stats.pendingVerify}
-              </h3>
-            </div>
-            <div className="rounded-lg bg-orange-100 p-3">
-              <svg
-                className="w-6 h-6 text-orange-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="⚠️ Pending Verification"
+          value={stats.pendingVerify}
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          }
+          bgColor="bg-gradient-to-br from-amber-100 to-amber-50"
+          iconColor="text-amber-600"
+          trend={{
+            value: 8,
+            isPositive: false,
+          }}
+        />
       </div>
 
       <AdminSidebarLayout
         overview={
-          <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-            Use the sidebar to manage every part of the shop: products,
-            inventory, orders, homepage content and blog posts.
+          <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-white to-primary/5 p-6 md:p-8">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 p-3">
+                <svg
+                  className="w-6 h-6 text-primary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  Welcome to Admin Dashboard
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Manage every aspect of your shop from a single dashboard. Use the sidebar navigation to handle customers, products, inventory, orders, blog posts, and website content. All changes are saved automatically and synced across your store.
+                </p>
+              </div>
+            </div>
           </div>
         }
         customers={
-          <div className="rounded-xl border p-2 md:p-4">
+          <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-white to-primary/5 overflow-hidden">
             <CustomerManager />
           </div>
         }
         products={
-          <div className="rounded-xl border p-2 md:p-4">
+          <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-white to-primary/5 overflow-hidden">
             <ProductManager />
           </div>
         }
         orders={
-          <div className="rounded-xl border bg-white overflow-hidden">
-            <div className="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:gap-2">
-              <input
-                value={orderQuery}
-                onChange={(e) => setOrderQuery(e.target.value)}
-                placeholder="Search orders by ID, product or method..."
-                className="h-10 flex-1 rounded-lg border px-3 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              <select
-                value={orderStatus}
-                onChange={(e) => setOrderStatus(e.target.value as any)}
-                className="h-10 rounded-lg border px-3 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="all">All Status</option>
-                <option value="placed">Placed</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-              <button
-                className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                onClick={() => alert(JSON.stringify(filteredOrders, null, 2))}
-              >
-                Export
-              </button>
-            </div>
-            <div className="divide-y">
-              {filteredOrders.map((o, idx) => (
-                <div
-                  key={o.id}
-                  className="grid gap-3 p-4 md:grid-cols-7 md:items-center"
-                >
-                  <div className="md:col-span-2">
-                    <div className="text-sm font-semibold text-foreground">
-                      {o.id}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(o.createdAt).toLocaleString()}
-                    </div>
-                    <div className="text-xs text-muted-foreground font-medium">
-                      {o.payment.method.toUpperCase()}
-                    </div>
-                  </div>
-                  <div className="text-sm text-foreground">
-                    {o.items[0]?.product.title}{" "}
-                    {o.items.length > 1 ? `+${o.items.length - 1} more` : ""}
-                  </div>
-                  <div className="text-sm font-semibold text-foreground">
-                    {formatCurrency(o.totals.total)}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-muted-foreground">
-                      Verified
-                    </label>
-                    <input
-                      type="checkbox"
-                      checked={o.paymentVerified}
-                      onChange={(e) =>
-                        update(idx, { paymentVerified: e.target.checked })
-                      }
-                      className="h-4 w-4"
-                    />
-                  </div>
-                  <div>
-                    <select
-                      className="h-9 rounded-lg border px-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      value={o.status}
-                      onChange={(e) =>
-                        update(idx, { status: e.target.value as any })
-                      }
-                    >
-                      <option value="placed">Placed</option>
-                      <option value="processing">Processing</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-                  <div className="text-right">
-                    <button
-                      className="text-sm text-primary font-medium hover:underline"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert(JSON.stringify(o, null, 2));
-                      }}
-                    >
-                      View
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {filteredOrders.length === 0 && (
-                <div className="p-8 text-center text-sm text-muted-foreground">
-                  No orders found.
-                </div>
-              )}
-            </div>
+          <div className="space-y-6">
+            <OrdersOverview
+              orders={filteredOrders}
+              onUpdate={update}
+            />
           </div>
         }
         inventory={
-          <div className="rounded-xl border p-2 md:p-4">
+          <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-white to-primary/5 overflow-hidden">
             <InventoryManager />
           </div>
         }
         content={
           <div className="grid gap-6">
-            <div className="rounded-xl border p-2 md:p-4">
+            <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-white to-primary/5 overflow-hidden">
               <PostManager />
             </div>
-            <div className="rounded-xl border p-2 md:p-4">
+            <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-white to-primary/5 overflow-hidden">
               <ContentManager />
             </div>
           </div>

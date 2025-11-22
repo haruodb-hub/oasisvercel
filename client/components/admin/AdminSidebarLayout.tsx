@@ -18,6 +18,16 @@ export default function AdminSidebarLayout({
   content: React.ReactNode;
 }) {
   const [tab, setTab] = useState<string>("overview");
+  
+  const navOptions = [
+    { value: "overview", label: "📊 Overview" },
+    { value: "customers", label: "👥 Customers" },
+    { value: "products", label: "📦 Products" },
+    { value: "orders", label: "🛒 Orders" },
+    { value: "inventory", label: "📈 Inventory" },
+    { value: "content", label: "📝 Posts & Content" },
+  ];
+
   return (
     <Tabs
       value={tab}
@@ -26,27 +36,33 @@ export default function AdminSidebarLayout({
       className="grid gap-6 md:gap-8 lg:grid-cols-5"
     >
       <aside className="lg:col-span-1">
+        {/* Mobile Navigation */}
         <div className="block lg:hidden mb-6">
-          <label className="block text-xs font-semibold text-foreground mb-3 uppercase tracking-wide">
-            Quick Navigation
-          </label>
-          <select
-            className="w-full h-11 rounded-lg border bg-white px-4 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-primary"
-            value={tab}
-            onChange={(e) => setTab(e.target.value)}
-          >
-            <option value="overview">📊 Overview</option>
-            <option value="customers">👥 Customers</option>
-            <option value="products">📦 Products</option>
-            <option value="orders">🛒 Orders</option>
-            <option value="inventory">✅ Inventory</option>
-            <option value="content">📝 Posts & Content</option>
-          </select>
+          <div className="relative">
+            <select
+              className="w-full h-12 rounded-xl border border-primary/20 bg-white px-4 py-2 text-sm font-semibold text-foreground transition-all appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-transparent hover:border-primary/40"
+              value={tab}
+              onChange={(e) => setTab(e.target.value)}
+            >
+              {navOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-foreground">
+              ▼
+            </div>
+          </div>
         </div>
+
+        {/* Desktop Navigation */}
         <div className="hidden lg:block">
           <SidebarNav />
         </div>
       </aside>
+
+      {/* Content Section */}
       <section className="lg:col-span-4 space-y-6 md:space-y-8">
         <TabsContent value="overview" className="m-0">
           {overview}
