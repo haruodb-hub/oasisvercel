@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Helper function to slug-ify ID
 function slugifyId(text: string): string {
@@ -216,7 +216,11 @@ function parseHtmlForProducts(html: string, baseUrl: string) {
   return products.slice(0, 20);
 }
 
-export const handleImportProducts: RequestHandler = async (req, res) => {
+export default async (req: VercelRequest, res: VercelResponse) => {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
     const { url } = req.body;
 

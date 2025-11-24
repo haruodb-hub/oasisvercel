@@ -1,5 +1,0 @@
-# API routes
-/api/*  /.netlify/functions/api  200
-
-# SPA catch-all - send all non-API routes to index.html
-/*    /index.html   200
