@@ -13,10 +13,10 @@
   command = "npm run dev"
   port = 8080
 
-# API routes - redirect to netlify function
+# API routes - redirect to netlify function with correct syntax
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api:splat"
+  to = "/.netlify/functions/api"
   status = 200
   force = true
 
@@ -25,4 +25,4 @@
   from = "/*"
   to = "/index.html"
   status = 200
-  condition = "!Query :path /api/* /css/* /js/* /images/*"
+
