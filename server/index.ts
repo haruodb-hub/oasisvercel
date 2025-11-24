@@ -29,13 +29,15 @@ export function createServer() {
   // Import products endpoint
   app.post("/api/import-products", handleImportProducts);
 
-  // SPA fallback route - serve index.html for all non-API routes
-  // This MUST be AFTER all API routes
-  // Use RegExp instead of wildcard string to avoid Express routing issues
-  app.get(/^(?!\/api\/).*$/, (_req, res) => {
-    const indexPath = path.join(__dirname, "../index.html");
-    res.sendFile(indexPath);
-  });
+  // SPA fallback route - only for production builds
+  // In development, Vite handles this automatically
+  // Only use if process.env.NODE_ENV === 'production'
+  if (process.env.NODE_ENV === "production") {
+    app.get(/^(?!\/api\/).*$/, (_req, res) => {
+      const indexPath = path.join(__dirname, "../index.html");
+      res.sendFile(indexPath);
+    });
+  }
 
   return app;
 }
