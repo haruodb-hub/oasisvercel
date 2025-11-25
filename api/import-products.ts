@@ -321,10 +321,29 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       };
     });
 
+    // Save products to backend storage
+    try {
+      const saveResponse = await fetch(
+        `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers['x-forwarded-host'] || req.headers.host}/api/save-products`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products: productsToReturn }),
+        }
+      );
+      
+      if (!saveResponse.ok) {
+        console.warn('Failed to save products to backend');
+      }
+    } catch (saveError) {
+      console.warn('Could not persist products:', saveError);
+    }
+
     res.json({
       success: true,
       count: productsToReturn.length,
       products: productsToReturn,
+      message: 'Products imported and saved',
     });
   } catch (error) {
     console.error("Import error:", error);

@@ -118,6 +118,20 @@ export function clearOverrides(): void {
   saveOverrides([]);
 }
 
+export async function syncFromServer(): Promise<void> {
+  try {
+    const response = await fetch("/api/get-products");
+    if (!response.ok) return;
+    
+    const data = await response.json();
+    if (data.products && Array.isArray(data.products)) {
+      importOverrides(data.products);
+    }
+  } catch (error) {
+    console.warn("Could not sync products from server:", error);
+  }
+}
+
 export function slugifyId(s: string): string {
   return slugifyBase(s);
 }

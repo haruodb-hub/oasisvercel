@@ -6,11 +6,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import Layout from "@/components/site/Layout";
 import PlaceholderPage from "@/components/site/PlaceholderPage";
 import { CartProvider } from "@/store/cart";
 import { AuthProvider } from "@/store/auth";
+import { syncFromServer } from "@/lib/catalog";
 
 const Index = lazy(() => import("./pages/Index"));
 const Shop = lazy(() => import("./pages/Shop"));
@@ -33,17 +34,16 @@ const UserDashboard = lazy(() => import("./pages/dashboard/UserDashboard"));
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <CartProvider>
-          <BrowserRouter>
-            <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>}>
-              <Routes>
-                <Route element={<Layout />}>
+const AppContent = () => {
+  useEffect(() => {
+    // Sync products from server on app load
+    syncFromServer();
+  }, []);
+
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>}>
+      <Routes>
+        <Route element={<Layout />}>
                   <Route path="/" element={<Index />} />
                   <Route path="/shop" element={<Shop />} />
                   <Route path="/product/:id" element={<Product />} />
@@ -81,6 +81,14 @@ const App = () => (
         </CartProvider>
       </AuthProvider>
     </TooltipProvider>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
@@ -91,3 +99,4 @@ if (!w.__appRoot) {
   w.__appRoot = createRoot(container);
 }
 w.__appRoot.render(<App />);
+
