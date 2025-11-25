@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write for test collection (testing only)
+    match /test-products/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Allow read/write for products collection
+    match /products/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Default: deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
