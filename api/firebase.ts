@@ -1,5 +1,6 @@
 import admin from 'firebase-admin';
 
+let db: admin.firestore.Firestore | null = null;
 const isInitialized = admin.apps.length > 0;
 
 if (!isInitialized) {
@@ -12,30 +13,37 @@ if (!isInitialized) {
       : null;
 
     if (!serviceAccountKey) {
-      console.warn('⚠️  FIREBASE_SERVICE_ACCOUNT_KEY not set. Products will only use localStorage.');
+      console.warn('⚠️  FIREBASE_SERVICE_ACCOUNT_KEY not set. Products will use fallback storage.');
     } else {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccountKey as admin.ServiceAccount),
         projectId: process.env.FIREBASE_PROJECT_ID || (serviceAccountKey as any).project_id,
       });
+      db = admin.firestore();
       console.log('✅ Firebase initialized');
     }
   } catch (error) {
     console.error('❌ Failed to initialize Firebase:', error);
   }
+} else {
+  db = admin.firestore();
 }
 
-export const db = admin.firestore();
+export function getDb() {
+  return db;
+}
 
 export async function saveProductsToFirebase(products: any[]) {
-  if (!admin.apps.length) {
-    console.warn('Firebase not initialized');
+  const database = getDb();
+  
+  if (!database) {
+    console.warn('Firebase not initialized - skipping save');
     return false;
   }
 
   try {
-    const batch = db.batch();
-    const collection = db.collection('products');
+    const batch = database.batch();
+    const collection = database.collection('products');
 
     // Delete old products
     const existing = await collection.get();
@@ -61,12 +69,15 @@ export async function saveProductsToFirebase(products: any[]) {
 }
 
 export async function getProductsFromFirebase() {
-  if (!admin.apps.length) {
+  const database = getDb();
+  
+  if (!database) {
+    console.warn('Firebase not initialized - returning empty array');
     return [];
   }
 
   try {
-    const snapshot = await db.collection('products').get();
+    const snapshot = await database.collection('products').get();
     const products = snapshot.docs.map(doc => doc.data());
     console.log(`✅ Retrieved ${products.length} products from Firestore`);
     return products;

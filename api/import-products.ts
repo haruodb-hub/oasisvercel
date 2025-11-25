@@ -330,7 +330,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       console.warn('Could not save to Firebase:', firebaseError);
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       count: productsToReturn.length,
       products: productsToReturn,
@@ -340,12 +340,12 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     console.error("Import error:", error);
     
     if (error instanceof Error && error.name === "AbortError") {
-      return res.status(500).json({
+      return res.status(408).json({
         error: "Request timed out. Server may be blocking or too slow.",
       });
     }
 
-    res.status(500).json({
+    res.status(400).json({
       error: "Failed to import products. The website may be blocking automated access. Try another URL.",
     });
   }

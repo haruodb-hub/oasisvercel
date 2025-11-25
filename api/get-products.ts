@@ -10,6 +10,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     let products = await getProductsFromFirebase();
 
+    // If Firebase returns empty, it might not be initialized
+    // In that case, return empty (frontend will use localStorage)
+    if (!Array.isArray(products)) {
+      products = [];
+    }
+
     res.status(200).json({
       success: true,
       count: products.length,
@@ -17,9 +23,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error) {
     console.error('Get products error:', error);
-    res.status(500).json({
-      error: 'Failed to retrieve products',
-      details: error instanceof Error ? error.message : 'Unknown error',
+    // Return empty array instead of error
+    res.status(200).json({
+      success: false,
+      count: 0,
+      products: [],
+      error: error instanceof Error ? error.message : 'Failed to retrieve products',
     });
   }
 }
