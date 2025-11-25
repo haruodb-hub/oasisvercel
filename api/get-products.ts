@@ -1,32 +1,14 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { getProductsFromFirebase } from './firebase';
 
-const PRODUCTS_FILE = join(process.cwd(), 'products-data.json');
-
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    let products = [];
-
-    // Try to read from file first
-    if (existsSync(PRODUCTS_FILE)) {
-      try {
-        const data = readFileSync(PRODUCTS_FILE, 'utf-8');
-        products = JSON.parse(data);
-      } catch (fileError) {
-        console.warn('Could not read products file:', fileError);
-      }
-    }
-
-    // Check memory cache as fallback
-    if (products.length === 0 && (global as any).__products_cache) {
-      products = (global as any).__products_cache;
-    }
+    let products = await getProductsFromFirebase();
 
     res.status(200).json({
       success: true,

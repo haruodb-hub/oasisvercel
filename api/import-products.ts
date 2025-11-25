@@ -1,4 +1,5 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { saveProductsToFirebase } from "./firebase";
 
 // Helper function to slug-ify ID
 function slugifyId(text: string): string {
@@ -321,22 +322,12 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       };
     });
 
-    // Save products to backend storage
+    // Save products directly to Firebase
     try {
-      const saveResponse = await fetch(
-        `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers['x-forwarded-host'] || req.headers.host}/api/save-products`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products: productsToReturn }),
-        }
-      );
-      
-      if (!saveResponse.ok) {
-        console.warn('Failed to save products to backend');
-      }
-    } catch (saveError) {
-      console.warn('Could not persist products:', saveError);
+      const firebaseSaved = await saveProductsToFirebase(productsToReturn);
+      console.log(`Products saved to Firebase: ${firebaseSaved}`);
+    } catch (firebaseError) {
+      console.warn('Could not save to Firebase:', firebaseError);
     }
 
     res.json({
